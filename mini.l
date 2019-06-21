@@ -8,7 +8,7 @@ INT     {DIGITO}+
 DOUBLE  {DIGITO}+("."{DIGITO}+)?
 ID      {LETRA}({LETRA}|{DIGITO})*
 
-RESTO   [^\n]
+STRING  \"(\"\"|\\\"|[^\n\"])*\"
 
 %%
 
@@ -30,10 +30,14 @@ RESTO   [^\n]
 "then"     { return token( TK_THEN ); }
 "else"     { return token( TK_ELSE ); }
 "endl"     { return token( TK_ENDL ); }
+"begin"    { return token( TK_BEGIN ); }
+"end"      { return token( TK_END ); }
+
+{STRING}   { return token( TK_STRING ); }
 
 {ID}       { return token( TK_ID ); }
 
-{RESTO}    { return token( TK_RESTO ); }
+.    { return token( *yytext ); }
 
 %%
 int token( int tk ) {

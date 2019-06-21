@@ -1,0 +1,4 @@
+var a, b;
+console >> a >> b;
+if a > b then begin console << "a é maior: " << a << endl; end
+else begin console << "b é maior: " << b << endl; end;
