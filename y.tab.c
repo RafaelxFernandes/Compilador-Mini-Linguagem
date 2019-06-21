@@ -1875,7 +1875,7 @@ string geraEntrada(Atributos s2){
 string geraSaida(Atributos s2){
     Atributos gerado;
 
-    gerado.c = s2.c + "cout << " + s2.v + " << endl;";
+    gerado.c = s2.c + "cout << " + s2.v + " << endl;\n";
 
     return gerado.c;
 }

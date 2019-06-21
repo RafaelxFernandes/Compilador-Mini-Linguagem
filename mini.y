@@ -326,3 +326,18 @@ int main(int argc, char* st[]){
 
     return 0;
 }
+
+/*
+Primeiro teste: Linha 4, coluna 26, proximo a:
+-- Problema: não reconhece fim de arquivo pelo visto. Linha 4, coluna 26 é logo depois do último ;
+Segundo teste: Linha 3, coluna 59, proximo a: endl
+-- Problema: endl não parece estar funcionando na saída
+Terceiro teste: Linha 6, coluna 23, proximo a: =
+-- Problema: estou comparando apenas valores com valores, não expressões com valores
+Quarto teste: Linha 5, coluna 6, proximo a: total
+-- Problema: dar um valor para uma variável depois do for não funciona
+Quinto teste: Linha 6, coluna 23, proximo a: endl
+-- Problema: maldito endl
+Atual situação: 0/100
+0 de 5 testes passaram
+*/
