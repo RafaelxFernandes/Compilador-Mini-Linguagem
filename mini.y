@@ -27,6 +27,8 @@
     void geraPrograma(Atributos a);
 
     string declaraInt(Atributos s2);
+    string concatenaVars(Atributos s1, Atributos s3);
+    string geraVarComArray(Atributos s1, Atributos s3);
     string geraNomeVar();
     string geraTemp();
     string geraEntrada(Atributos s2);
@@ -82,11 +84,11 @@ BLOCO       : TK_BEGIN CMDS TK_END
 DECLVAR     : TK_VAR VARS { declaraInt($2); }
             ;
     
-VARS        : VARS ',' VAR { $$.c = $1.c + ", " + $3.c; }
+VARS        : VARS ',' VAR { concatenaVars($1, $3); }
             | VAR
             ;
         
-VAR         : TK_ID '[' CINT ']' { $$.c = $1.v + "[" + $3.v + "]"; }
+VAR         : TK_ID '[' CINT ']' { geraVarComArray($1, $3); }
             | TK_ID { $$.c = $1.v; }
             ;
         
@@ -186,6 +188,22 @@ string declaraInt(Atributos s2){
     Atributos gerado;
 
     gerado.c = "int " + s2.c + ";\n";
+
+    return gerado.c;
+}
+
+string concatenaVars(Atributos s1, Atributos s3){
+    Atributos gerado;
+
+    gerado.c = s1.c + ", " + s3.c;
+    
+    return gerado.c;
+}
+
+string geraVarComArray(Atributos s1, Atributos s3){
+    Atributos gerado;
+
+    gerado.c = s1.v + "[" + s3.v + "]";
 
     return gerado.c;
 }
