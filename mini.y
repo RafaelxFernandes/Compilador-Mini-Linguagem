@@ -81,8 +81,7 @@ CMDX        : ENTRADA
             | ATR
             | FOR
             | IF
-            ;
-
+            
 BLOCO       : TK_BEGIN CMDS TK_END
             | TK_BEGIN TK_END
             ;
