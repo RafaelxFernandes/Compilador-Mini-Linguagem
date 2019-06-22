@@ -31,6 +31,7 @@
     string geraVarComArray(Atributos s1, Atributos s3);
     string geraNomeVar();
     string geraTemp();
+    string declaraVar();
     string geraEntrada(Atributos s2);
     string geraSaida(Atributos s2);
     string geraFor(Atributos s2, Atributos s5, Atributos s7, Atributos s9);
@@ -78,7 +79,6 @@ CMD         : DECLVAR
 
 BLOCO       : TK_BEGIN CMDS TK_END
             | TK_BEGIN TK_END
-            | CMDS
             ;
     
 DECLVAR     : TK_VAR VARS { declaraInt($2); }
@@ -95,23 +95,24 @@ VAR         : TK_ID '[' CINT ']' { geraVarComArray($1, $3); }
 ENTRADA     : TK_CONSOLE ENTRADAS          
             ;
 
-ENTRADAS    : TK_SHIFTR TK_ID ENTRADAS { geraEntrada($2); } 
+ENTRADAS    : TK_SHIFTR TK_ID ENTRADAS           { geraEntrada($2); } 
             | TK_SHIFTR TK_ID '[' E ']' ENTRADAS { geraEntradaComArray($2, $4); }
-            | TK_SHIFTR TK_ID { geraEntrada($2); }
-            | TK_SHIFTR TK_ID '[' E ']' { geraEntradaComArray($2, $4); } 
+            | TK_SHIFTR TK_ID                    { geraEntrada($2); }
+            | TK_SHIFTR TK_ID '[' E ']'          { geraEntradaComArray($2, $4); } 
             ;
   
-SAIDA       : TK_CONSOLE SAIDAS TK_ENDL
+SAIDA       : TK_CONSOLE SAIDAS TK_ENDL ';'
             | TK_CONSOLE SAIDAS
             ;
 
-SAIDAS      : TK_SHIFTL E SAIDAS { geraSaida($2); }
-            | TK_SHIFTL E { geraSaida($2); }
+SAIDAS      : TK_SHIFTL E SAIDAS         { geraSaida($2); }
+            | TK_SHIFTL E                { geraSaida($2); }
             | TK_SHIFTL TK_STRING SAIDAS { geraSaida($2); }
-            | TK_SHIFTL TK_STRING { geraSaida($2); }
+            | TK_SHIFTL TK_STRING        { geraSaida($2); }
             ;
         
-FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO { geraFor($2, $5, $7, $9); }        
+FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO { geraFor($2, $5, $7, $9); }
+            | TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' CMD   { geraFor($2, $5, $7, $9); }   
             ;
             
 IF          : TK_IF E TK_THEN BLOCO TK_ELSE BLOCO ';'
@@ -133,8 +134,8 @@ E           : E '+' E { gera_codigo_operacao($1, $2, $3); }
             | V
             ;
 
-C           : V '<' V { gera_codigo_operacao($1, $2, $3); }
-            | V '>' V { gera_codigo_operacao($1, $2, $3); }
+C           : V '<' V  { gera_codigo_operacao($1, $2, $3); }
+            | V '>' V  { gera_codigo_operacao($1, $2, $3); }
             | V "<=" V { gera_codigo_operacao($1, $2, $3); }
             | V ">=" V { gera_codigo_operacao($1, $2, $3); }
             | V "==" V { gera_codigo_operacao($1, $2, $3); }
@@ -160,12 +161,6 @@ V           : TK_ID '[' E ']' { geraValorComArray($1, $3); }
 
 #include "lex.yy.c"
 
-void yyerror( const char* st ){
-    puts( st ); 
-    printf( "Linha %d, coluna %d, proximo a: %s\n", linha, coluna, yytext );
-    exit( 0 );
-}
-
 string cabecalho = 
 "#include <iostream>\n\n" 
 "using namespace std;\n\n"
@@ -175,8 +170,15 @@ string fim_programa =
 "  return 0;\n"
 "}\n";
 
+void yyerror( const char* st ){
+    puts( st ); 
+    printf( "Linha %d, coluna %d, proximo a: %s\n", linha, coluna, yytext );
+    exit( 0 );
+}
+
 void geraPrograma(Atributos a){
   cout << cabecalho
+       << declaraVar()
        << a.c 
        << "  cout << " << a.v << ";\n"
        << "  cout << endl;\n"
@@ -219,10 +221,20 @@ string geraNomeVar(){
 string geraTemp(){
     static int n_var_temp = 0;
 
-    string nome = "t_" + to_string( n_var_temp++ );
+    string nome = "t" + to_string( n_var_temp++ );
     ts[nome] = "  int " + nome + ";\n";
 
     return nome;
+}
+
+string declaraVar(){
+    string saida;
+
+    for(auto p: ts){
+        saida += p.second;
+    }
+
+    return saida;
 }
 
 string geraEntrada(Atributos s2){
@@ -259,6 +271,7 @@ string geraFor(Atributos s2, Atributos s5, Atributos s7, Atributos s9){
 Atributos geraAtribuicao(Atributos s1, Atributos s3){
     Atributos gerado;
 
+    ts[s1.v] = " int " + s1.v + ";\n";
     gerado.v = s3.v;
     gerado.c = s3.c + s1.v + " = " + s3.v + ";\n";
 
@@ -326,18 +339,3 @@ int main(int argc, char* st[]){
 
     return 0;
 }
-
-/*
-Primeiro teste: Linha 4, coluna 26, proximo a:
--- Problema: não reconhece fim de arquivo pelo visto. Linha 4, coluna 26 é logo depois do último ;
-Segundo teste: Linha 3, coluna 59, proximo a: endl
--- Problema: endl não parece estar funcionando na saída
-Terceiro teste: Linha 6, coluna 23, proximo a: =
--- Problema: estou comparando apenas valores com valores, não expressões com valores
-Quarto teste: Linha 5, coluna 6, proximo a: total
--- Problema: dar um valor para uma variável depois do for não funciona
-Quinto teste: Linha 6, coluna 23, proximo a: endl
--- Problema: maldito endl
-Atual situação: 0/100
-0 de 5 testes passaram
-*/
