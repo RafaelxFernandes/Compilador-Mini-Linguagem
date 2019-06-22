@@ -1,4 +1,4 @@
 var a, b;
-console >> a;
-for b in [0..a]
-  console << b*b << "; ";
+console >> a >> b;
+if a > b then begin console << "a é maior: " << a << endl; end
+else begin console << "b é maior: " << b << endl; end;

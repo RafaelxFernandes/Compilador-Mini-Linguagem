@@ -24,12 +24,11 @@
     int yyparse();
     void yyerror(const char *);
 
-    void geraPrograma(Atributos a);
+    void geraPrograma(Atributos s1);
 
     string declaraInt(Atributos s2);
     string concatenaVars(Atributos s1, Atributos s3);
     string geraVarComArray(Atributos s1, Atributos s3);
-    string geraNomeVar();
     string geraTemp();
     string declaraVar();
     string geraEntrada(Atributos s2);
@@ -62,15 +61,22 @@
 
 %%
 
-S           : CMDS { geraPrograma( $1 ); } 
+S           : CMDS 
             ;  
 
-CMDS        : CMDS CMD ';' { $$.c = $1.c + $2.c; }
-            | CMD ';' 
+CMDS        : CMDS CMD { $$.c = $1.c + $2.c; }
+            | CMD
             ;
     
 CMD         : DECLVAR
             | ENTRADA
+            | SAIDA
+            | ATR
+            | FOR
+            | IF
+            ;
+
+CMDX        : ENTRADA
             | SAIDA
             | ATR
             | FOR
@@ -84,7 +90,7 @@ BLOCO       : TK_BEGIN CMDS TK_END
 DECLVAR     : TK_VAR VARS { declaraInt($2); }
             ;
     
-VARS        : VARS ',' VAR { concatenaVars($1, $3); }
+VARS        : VARS ',' VAR ';' { concatenaVars($1, $3); }
             | VAR
             ;
         
@@ -95,24 +101,26 @@ VAR         : TK_ID '[' CINT ']' { geraVarComArray($1, $3); }
 ENTRADA     : TK_CONSOLE ENTRADAS          
             ;
 
-ENTRADAS    : TK_SHIFTR TK_ID ENTRADAS           { geraEntrada($2); } 
-            | TK_SHIFTR TK_ID '[' E ']' ENTRADAS { geraEntradaComArray($2, $4); }
-            | TK_SHIFTR TK_ID                    { geraEntrada($2); }
-            | TK_SHIFTR TK_ID '[' E ']'          { geraEntradaComArray($2, $4); } 
+ENTRADAS    : TK_SHIFTR TK_ID ';'                   { geraEntrada($2); }
+            | TK_SHIFTR TK_ID ENTRADAS              { geraEntrada($2); } 
+            | TK_SHIFTR TK_ID '[' E ']' ';'         { geraEntradaComArray($2, $4); } 
+            | TK_SHIFTR TK_ID '[' E ']' ENTRADAS    { geraEntradaComArray($2, $4); }
             ;
   
-SAIDA       : TK_CONSOLE SAIDAS TK_ENDL ';'
+SAIDA       : TK_CONSOLE SAIDAS TK_ENDL
             | TK_CONSOLE SAIDAS
             ;
 
-SAIDAS      : TK_SHIFTL E SAIDAS         { geraSaida($2); }
-            | TK_SHIFTL E                { geraSaida($2); }
-            | TK_SHIFTL TK_STRING SAIDAS { geraSaida($2); }
-            | TK_SHIFTL TK_STRING        { geraSaida($2); }
+SAIDAS      : TK_SHIFTL E ';'                   { geraSaida($2); }
+            | TK_SHIFTL E TK_ENDL ';'           { geraSaida($2); }
+            | TK_SHIFTL E SAIDAS                { geraSaida($2); }
+            | TK_SHIFTL TK_STRING ';'           { geraSaida($2); }
+            | TK_SHIFTL TK_STRING TK_ENDL ';'   { geraSaida($2); }
+            | TK_SHIFTL TK_STRING SAIDAS        { geraSaida($2); }
             ;
         
-FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO { geraFor($2, $5, $7, $9); }
-            | TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' CMD   { geraFor($2, $5, $7, $9); }   
+FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO  { geraFor($2, $5, $7, $9); }
+            | TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' CMDX   { geraFor($2, $5, $7, $9); }   
             ;
             
 IF          : TK_IF E TK_THEN BLOCO TK_ELSE BLOCO ';'
@@ -130,7 +138,6 @@ E           : E '+' E { gera_codigo_operacao($1, $2, $3); }
             | E '%' E { gera_codigo_operacao($1, $2, $3); }
             | C
             | L
-            | N
             | V
             ;
 
@@ -146,11 +153,6 @@ L           : C "&&" C { gera_codigo_operacao($1, $2, $3); }
             | C "||" C { gera_codigo_operacao($1, $2, $3); }
             ;
 
-N           : '!' C
-            | '!' L
-            | '!' V
-            ;
-  
 V           : TK_ID '[' E ']' { geraValorComArray($1, $3); }
             | TK_ID     { $$.c = $1.c; $$.v = $1.v; }
             | CINT      { $$.c = $1.c; $$.v = $1.v; } 
@@ -175,17 +177,17 @@ void yyerror( const char* st ){
     printf( "Linha %d, coluna %d, proximo a: %s\n", linha, coluna, yytext );
     exit( 0 );
 }
-
-void geraPrograma(Atributos a){
+/* >> Inserir função na regra S <<
+void geraPrograma(Atributos s1){
   cout << cabecalho
        << declaraVar()
-       << a.c 
-       << "  cout << " << a.v << ";\n"
+       << s1.c 
+       << "  cout << " << s1.v << ";\n"
        << "  cout << endl;\n"
        << fim_programa
        << endl;
 }
-
+*/
 string declaraInt(Atributos s2){
     Atributos gerado;
 
@@ -208,14 +210,6 @@ string geraVarComArray(Atributos s1, Atributos s3){
     gerado.c = s1.v + "[" + s3.v + "]";
 
     return gerado.c;
-}
-
-string geraNomeVar(){
-    char buf[20] = "";
-
-    sprintf( buf, "t%d", nVar++ );
-
-    return buf;
 }
 
 string geraTemp(){
@@ -256,7 +250,7 @@ string geraSaida(Atributos s2){
 string geraFor(Atributos s2, Atributos s5, Atributos s7, Atributos s9){
     Atributos gerado;
 
-    string cond = geraNomeVar();
+    string cond = geraTemp();
 
     gerado.c = s5.c + s7.c + s2.v + " = " + s5.v + ";\n"
                 + "meio: \n" + cond + " = " + s2.v + " > " + s7.v + ";\n"
@@ -272,8 +266,8 @@ Atributos geraAtribuicao(Atributos s1, Atributos s3){
     Atributos gerado;
 
     ts[s1.v] = " int " + s1.v + ";\n";
-    gerado.v = s3.v;
-    gerado.c = s3.c + s1.v + " = " + s3.v + ";\n";
+    gerado.v = s1.v;
+    gerado.c = s1.c + s3.c + " " + gerado.v + " = " + s3.v + ";\n";
 
     return gerado;
 }
@@ -290,7 +284,7 @@ Atributos geraAtribuicaoComArray(Atributos s1, Atributos s3, Atributos s6){
 Atributos geraEntradaComArray(Atributos s2, Atributos s4){
     Atributos gerado;
 
-    gerado.v = geraNomeVar();
+    gerado.v = geraTemp();
     gerado.c = s4.c + "cin >> " + gerado.v + ";\n" + s2.v + "[" + s4.v + "] = " + gerado.v + ";\n";
 
     return gerado;
@@ -299,7 +293,7 @@ Atributos geraEntradaComArray(Atributos s2, Atributos s4){
 Atributos geraValorComArray(Atributos s1, Atributos s3){
     Atributos gerado;
 
-    gerado.c = geraNomeVar();
+    gerado.c = geraTemp();
     gerado.v = s3.c + gerado.v + " = " + s1.v + "[" + s3.v + "];\n";
 
     return gerado;

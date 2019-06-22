@@ -1,4 +1,4 @@
-saida: mini entrada.txt
+all: mini entrada.txt
 	./mini < entrada.txt 	
 
 lex.yy.c: mini.l
