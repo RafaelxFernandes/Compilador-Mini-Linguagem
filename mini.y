@@ -95,8 +95,13 @@ VAR         : TK_ID '[' CINT ']'    { $$.c = geraVarComArray($1, $3); }
             | TK_ID                 { $$.c = $1.v; }
             ;
         
-ENTRADA     : TK_CONSOLE TK_SHIFTR TK_ID ';'                    { $$.c = geraEntrada($3); }
-            | TK_CONSOLE TK_SHIFTR TK_ID '[' E ']' ';'          { $$ = geraEntradaComArray($3, $5); } 
+ENTRADA     : TK_CONSOLE ENTRADAS          
+            ;
+
+ENTRADAS    : TK_SHIFTR TK_ID ';'                   { $$.c = geraEntrada($2); }
+            | TK_SHIFTR TK_ID ENTRADAS              { $$.c = geraEntrada($2); } 
+            | TK_SHIFTR TK_ID '[' E ']' ';'         { $$ = geraEntradaComArray($2, $4); } 
+            | TK_SHIFTR TK_ID '[' E ']' ENTRADAS    { $$ = geraEntradaComArray($2, $4); }
             ;
   
 SAIDA       : TK_CONSOLE SAIDAS 
