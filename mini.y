@@ -61,11 +61,11 @@
 
 %%
 
-S           : CMDS 
+S           : CMDS      { geraPrograma($1); }
             ;  
 
-CMDS        : CMDS CMD { $$.c = $1.c + $2.c; }
-            | CMD
+CMDS        : CMDS CMD  { $$.c = $1.c + $2.c; }
+            | CMD       
             ;
     
 CMD         : DECLVAR ';'
@@ -84,43 +84,42 @@ CMDX        : ENTRADA
             ;
 
 BLOCO       : TK_BEGIN CMDS TK_END
-            | TK_BEGIN TK_END
             ;
     
-DECLVAR     : TK_VAR VARS { declaraInt($2); }
+DECLVAR     : TK_VAR VARS   { $$.c = declaraInt($2); }
             ;
     
-VARS        : VARS ',' VAR { concatenaVars($1, $3); }
+VARS        : VARS ',' VAR  { $$.c = concatenaVars($1, $3); }
             | VAR 
             ;
         
-VAR         : TK_ID '[' CINT ']' { geraVarComArray($1, $3); }
-            | TK_ID { $$.c = $1.v; }
+VAR         : TK_ID '[' CINT ']'    { $$.c = geraVarComArray($1, $3); }
+            | TK_ID                 { $$.c = $1.v; }
             ;
         
 ENTRADA     : TK_CONSOLE ENTRADAS          
             ;
 
-ENTRADAS    : TK_SHIFTR TK_ID ';'                   { geraEntrada($2); }
-            | TK_SHIFTR TK_ID ENTRADAS              { geraEntrada($2); } 
-            | TK_SHIFTR TK_ID '[' E ']' ';'         { geraEntradaComArray($2, $4); } 
-            | TK_SHIFTR TK_ID '[' E ']' ENTRADAS    { geraEntradaComArray($2, $4); }
+ENTRADAS    : TK_SHIFTR TK_ID ';'                   { $$.c = geraEntrada($2); }
+            | TK_SHIFTR TK_ID ENTRADAS              { $$.c = geraEntrada($2); } 
+            | TK_SHIFTR TK_ID '[' E ']' ';'         { $$ = geraEntradaComArray($2, $4); } 
+            | TK_SHIFTR TK_ID '[' E ']' ENTRADAS    { $$ = geraEntradaComArray($2, $4); }
             ;
   
 SAIDA       : TK_CONSOLE SAIDAS 
             ;
 
-SAIDAS      : TK_SHIFTL E ';'                   { geraSaida($2); }
-            | TK_SHIFTL E TK_ENDL ';'           { geraSaida($2); }
-            | TK_SHIFTL E SAIDAS                { geraSaida($2); }
-            | TK_SHIFTL TK_STRING ';'           { geraSaida($2); }
-            | TK_SHIFTL TK_STRING TK_ENDL ';'   { geraSaida($2); }
-            | TK_SHIFTL TK_STRING SAIDAS        { geraSaida($2); }
+SAIDAS      : TK_SHIFTL E ';'                   { $$.c = geraSaida($2); }
+            | TK_SHIFTL E TK_ENDL ';'           { $$.c = geraSaida($2); }
+            | TK_SHIFTL E SAIDAS                { $$.c = geraSaida($2); }
+            | TK_SHIFTL TK_STRING ';'           { $$.c = geraSaida($2); }
+            | TK_SHIFTL TK_STRING TK_ENDL ';'   { $$.c = geraSaida($2); }
+            | TK_SHIFTL TK_STRING SAIDAS        { $$.c = geraSaida($2); }
             | TK_SHIFTL TK_ENDL ';'
             ;
         
-FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO ';' { geraFor($2, $5, $7, $9); }
-            | TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' CMDX      { geraFor($2, $5, $7, $9); }   
+FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO ';' { $$.c = geraFor($2, $5, $7, $9); }
+            | TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' CMDX      { $$.c = geraFor($2, $5, $7, $9); }   
             ;
             
 IF          : TK_IF R TK_THEN BLOCO TK_ELSE BLOCO ';'
@@ -129,15 +128,15 @@ IF          : TK_IF R TK_THEN BLOCO TK_ELSE BLOCO ';'
             | TK_IF R TK_THEN CMD
             ;
   
-ATR         : TK_ID '=' E ';' { geraAtribuicao($1, $3) ; }
-            | TK_ID '[' E ']' '=' E ';'{ geraAtribuicaoComArray($1, $3, $6); }
+ATR         : TK_ID '=' E ';'           { $$ = geraAtribuicao($1, $3) ; }
+            | TK_ID '[' E ']' '=' E ';' { $$ = geraAtribuicaoComArray($1, $3, $6); }
             ;
   
-E           : E '+' E { gera_codigo_operacao($1, $2, $3); }
-            | E '-' E { gera_codigo_operacao($1, $2, $3); }
-            | E '*' E { gera_codigo_operacao($1, $2, $3); }
-            | E '/' E { gera_codigo_operacao($1, $2, $3); }
-            | E '%' E { gera_codigo_operacao($1, $2, $3); }
+E           : E '+' E           { $$ = gera_codigo_operacao($1, $2, $3); }
+            | E '-' E           { $$ = gera_codigo_operacao($1, $2, $3); }
+            | E '*' E           { $$ = gera_codigo_operacao($1, $2, $3); }
+            | E '/' E           { $$ = gera_codigo_operacao($1, $2, $3); }
+            | E '%' E           { $$ = gera_codigo_operacao($1, $2, $3); }
             | V
             ;
 
@@ -146,22 +145,22 @@ R           : E
             | L
             ;
 
-C           : E '<' E       { gera_codigo_operacao($1, $2, $3); }
-            | E '>' E       { gera_codigo_operacao($1, $2, $3); }
-            | E TK_MAIG E   { gera_codigo_operacao($1, $2, $3); }
-            | E TK_MEIG E   { gera_codigo_operacao($1, $2, $3); }
-            | E TK_IG E     { gera_codigo_operacao($1, $2, $3); }
-            | E TK_DIF E    { gera_codigo_operacao($1, $2, $3); }
+C           : E '<' E           { $$ = gera_codigo_operacao($1, $2, $3); }
+            | E '>' E           { $$ = gera_codigo_operacao($1, $2, $3); }
+            | E TK_MAIG E       { $$ = gera_codigo_operacao($1, $2, $3); }
+            | E TK_MEIG E       { $$ = gera_codigo_operacao($1, $2, $3); }
+            | E TK_IG E         { $$ = gera_codigo_operacao($1, $2, $3); }
+            | E TK_DIF E        { $$ = gera_codigo_operacao($1, $2, $3); }
             ;
 
-L           : C TK_AND C { gera_codigo_operacao($1, $2, $3); }
-            | C TK_OR C  { gera_codigo_operacao($1, $2, $3); }
+L           : C TK_AND C        { $$ = gera_codigo_operacao($1, $2, $3); }
+            | C TK_OR C         { $$ = gera_codigo_operacao($1, $2, $3); }
             ;
 
-V           : TK_ID '[' E ']' { geraValorComArray($1, $3); }
-            | TK_ID           { $$.c = $1.c; $$.v = $1.v; }
-            | CINT            { $$.c = $1.c; $$.v = $1.v; } 
-            | '(' E ')'       { $$ = $2; }
+V           : TK_ID '[' E ']'   { $$ = geraValorComArray($1, $3); }
+            | TK_ID             
+            | CINT              
+            | '(' E ')'         { $$ = $2; }
             ;
 
 %%
@@ -182,17 +181,17 @@ void yyerror( const char* st ){
     printf( "Linha %d, coluna %d, proximo a: %s\n", linha, coluna, yytext );
     exit( 0 );
 }
-/* >> Inserir função na regra S <<
+
 void geraPrograma(Atributos s1){
-  cout << cabecalho
+  cout << endl
+       << cabecalho
        << declaraVar()
        << s1.c 
        << "  cout << " << s1.v << ";\n"
        << "  cout << endl;\n"
-       << fim_programa
-       << endl;
+       << fim_programa;
 }
-*/
+
 string declaraInt(Atributos s2){
     Atributos gerado;
 
