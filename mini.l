@@ -19,6 +19,13 @@ STRING  \"(\"\"|\\\"|[^\n\"])*\"
 {INT} 	   { return token( CINT ); }
 {DOUBLE}   { return token( CDOUBLE ); }
 
+">="        { return TK_MAIG; }
+"<="       { return TK_MEIG; }
+"=="       { return TK_IG; }
+"!="       { return TK_DIF; }
+"&&"       { return TK_AND; }
+"||"       { return TK_OR; }
+
 "var"	   { return token( TK_VAR ); }
 "console"  { return token( TK_CONSOLE ); }
 ">>"       { return token( TK_SHIFTR ); }

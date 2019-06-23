@@ -51,7 +51,7 @@
 %start S
 
 %token CINT CDOUBLE TK_ID TK_VAR TK_CONSOLE TK_SHIFTR TK_SHIFTL TK_ENDL
-%token TK_FOR TK_IN TK_2PT TK_IF TK_THEN TK_ELSE TK_BEGIN TK_END TK_STRING
+%token TK_FOR TK_IN TK_2PT TK_IF TK_THEN TK_ELSE TK_BEGIN TK_END TK_STRING TK_MAIG TK_MEIG TK_IG TK_DIF TK_AND TK_OR
 
 %right '!'
 %nonassoc "&&" "||"
@@ -68,7 +68,7 @@ CMDS        : CMDS CMD { $$.c = $1.c + $2.c; }
             | CMD
             ;
     
-CMD         : DECLVAR
+CMD         : DECLVAR ';'
             | ENTRADA
             | SAIDA
             | ATR
@@ -90,8 +90,8 @@ BLOCO       : TK_BEGIN CMDS TK_END
 DECLVAR     : TK_VAR VARS { declaraInt($2); }
             ;
     
-VARS        : VARS ',' VAR ';' { concatenaVars($1, $3); }
-            | VAR
+VARS        : VARS ',' VAR { concatenaVars($1, $3); }
+            | VAR 
             ;
         
 VAR         : TK_ID '[' CINT ']' { geraVarComArray($1, $3); }
@@ -119,12 +119,13 @@ SAIDAS      : TK_SHIFTL E ';'                   { geraSaida($2); }
             | TK_SHIFTL TK_ENDL ';'
             ;
         
-FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO  { geraFor($2, $5, $7, $9); }
-            | TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' CMDX   { geraFor($2, $5, $7, $9); }   
+FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO ';' { geraFor($2, $5, $7, $9); }
+            | TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' CMDX ';'  { geraFor($2, $5, $7, $9); }   
             ;
             
-IF          : TK_IF E TK_THEN BLOCO TK_ELSE BLOCO ';'
-            | TK_IF E TK_THEN BLOCO ';'
+IF          : TK_IF R TK_THEN BLOCO TK_ELSE BLOCO ';'
+            | TK_IF R TK_THEN BLOCO ';'
+            | TK_IF R TK_THEN CMD
             ;
   
 ATR         : TK_ID '=' E ';' { geraAtribuicao($1, $3) ; }
@@ -136,21 +137,24 @@ E           : E '+' E { gera_codigo_operacao($1, $2, $3); }
             | E '*' E { gera_codigo_operacao($1, $2, $3); }
             | E '/' E { gera_codigo_operacao($1, $2, $3); }
             | E '%' E { gera_codigo_operacao($1, $2, $3); }
-            | C
-            | L
             | V
             ;
 
-C           : V '<' V  { gera_codigo_operacao($1, $2, $3); }
-            | V '>' V  { gera_codigo_operacao($1, $2, $3); }
-            | V "<=" V { gera_codigo_operacao($1, $2, $3); }
-            | V ">=" V { gera_codigo_operacao($1, $2, $3); }
-            | V "==" V { gera_codigo_operacao($1, $2, $3); }
-            | V "!=" V { gera_codigo_operacao($1, $2, $3); }
+R           : E
+            | C 
+            | L
             ;
 
-L           : C "&&" C { gera_codigo_operacao($1, $2, $3); }
-            | C "||" C { gera_codigo_operacao($1, $2, $3); }
+C           : E '<' E  { gera_codigo_operacao($1, $2, $3); }
+            | E '>' E  { gera_codigo_operacao($1, $2, $3); }
+            | E TK_MAIG E { gera_codigo_operacao($1, $2, $3); }
+            | E TK_MEIG E { gera_codigo_operacao($1, $2, $3); }
+            | E TK_IG E { gera_codigo_operacao($1, $2, $3); }
+            | E TK_DIF E { gera_codigo_operacao($1, $2, $3); }
+            ;
+
+L           : C TK_AND C { gera_codigo_operacao($1, $2, $3); }
+            | C TK_OR C { gera_codigo_operacao($1, $2, $3); }
             ;
 
 V           : TK_ID '[' E ']' { geraValorComArray($1, $3); }
