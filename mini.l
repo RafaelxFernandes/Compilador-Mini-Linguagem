@@ -19,7 +19,7 @@ STRING  \"(\"\"|\\\"|[^\n\"])*\"
 {INT} 	   { return token( CINT ); }
 {DOUBLE}   { return token( CDOUBLE ); }
 
-">="        { return TK_MAIG; }
+">="       { return TK_MAIG; }
 "<="       { return TK_MEIG; }
 "=="       { return TK_IG; }
 "!="       { return TK_DIF; }

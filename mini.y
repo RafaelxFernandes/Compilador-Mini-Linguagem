@@ -120,7 +120,7 @@ SAIDAS      : TK_SHIFTL E ';'                   { geraSaida($2); }
             ;
         
 FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO ';' { geraFor($2, $5, $7, $9); }
-            | TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' CMDX ';'  { geraFor($2, $5, $7, $9); }   
+            | TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' CMDX      { geraFor($2, $5, $7, $9); }   
             ;
             
 IF          : TK_IF R TK_THEN BLOCO TK_ELSE BLOCO ';'
@@ -145,22 +145,22 @@ R           : E
             | L
             ;
 
-C           : E '<' E  { gera_codigo_operacao($1, $2, $3); }
-            | E '>' E  { gera_codigo_operacao($1, $2, $3); }
-            | E TK_MAIG E { gera_codigo_operacao($1, $2, $3); }
-            | E TK_MEIG E { gera_codigo_operacao($1, $2, $3); }
-            | E TK_IG E { gera_codigo_operacao($1, $2, $3); }
-            | E TK_DIF E { gera_codigo_operacao($1, $2, $3); }
+C           : E '<' E       { gera_codigo_operacao($1, $2, $3); }
+            | E '>' E       { gera_codigo_operacao($1, $2, $3); }
+            | E TK_MAIG E   { gera_codigo_operacao($1, $2, $3); }
+            | E TK_MEIG E   { gera_codigo_operacao($1, $2, $3); }
+            | E TK_IG E     { gera_codigo_operacao($1, $2, $3); }
+            | E TK_DIF E    { gera_codigo_operacao($1, $2, $3); }
             ;
 
 L           : C TK_AND C { gera_codigo_operacao($1, $2, $3); }
-            | C TK_OR C { gera_codigo_operacao($1, $2, $3); }
+            | C TK_OR C  { gera_codigo_operacao($1, $2, $3); }
             ;
 
 V           : TK_ID '[' E ']' { geraValorComArray($1, $3); }
-            | TK_ID     { $$.c = $1.c; $$.v = $1.v; }
-            | CINT      { $$.c = $1.c; $$.v = $1.v; } 
-            | '(' E ')' { $$ = $2; }
+            | TK_ID           { $$.c = $1.c; $$.v = $1.v; }
+            | CINT            { $$.c = $1.c; $$.v = $1.v; } 
+            | '(' E ')'       { $$ = $2; }
             ;
 
 %%
