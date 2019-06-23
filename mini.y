@@ -43,8 +43,6 @@
     Atributos gera_codigo_comparacao(Atributos s1, Atributos s2, Atributos s3);
     Atributos gera_codigo_negacao(Atributos s1, Atributos s2);
 
-    int nVar = 0;
-
     map<string,string> ts;
 %}
 
@@ -97,13 +95,8 @@ VAR         : TK_ID '[' CINT ']'    { $$.c = geraVarComArray($1, $3); }
             | TK_ID                 { $$.c = $1.v; }
             ;
         
-ENTRADA     : TK_CONSOLE ENTRADAS          
-            ;
-
-ENTRADAS    : TK_SHIFTR TK_ID ';'                   { $$.c = geraEntrada($2); }
-            | TK_SHIFTR TK_ID ENTRADAS              { $$.c = geraEntrada($2); } 
-            | TK_SHIFTR TK_ID '[' E ']' ';'         { $$ = geraEntradaComArray($2, $4); } 
-            | TK_SHIFTR TK_ID '[' E ']' ENTRADAS    { $$ = geraEntradaComArray($2, $4); }
+ENTRADA     : TK_CONSOLE TK_SHIFTR TK_ID ';'                    { $$.c = geraEntrada($3); }
+            | TK_CONSOLE TK_SHIFTR TK_ID '[' E ']' ';'          { $$ = geraEntradaComArray($3, $5); } 
             ;
   
 SAIDA       : TK_CONSOLE SAIDAS 
@@ -158,8 +151,8 @@ L           : C TK_AND C        { $$ = gera_codigo_operacao($1, $2, $3); }
             ;
 
 V           : TK_ID '[' E ']'   { $$ = geraValorComArray($1, $3); }
-            | TK_ID             
-            | CINT              
+            | TK_ID             { $$.c = ""; $$.v = $1.v; }
+            | CINT              { $$.c = ""; $$.v = $1.v; }
             | '(' E ')'         { $$ = $2; }
             ;
 
@@ -183,8 +176,7 @@ void yyerror( const char* st ){
 }
 
 void geraPrograma(Atributos s1){
-  cout << endl
-       << cabecalho
+  cout << cabecalho
        << declaraVar()
        << s1.c 
        << "  cout << " << s1.v << ";\n"
@@ -258,7 +250,7 @@ string geraFor(Atributos s2, Atributos s5, Atributos s7, Atributos s9){
 
     gerado.c = s5.c + s7.c + s2.v + " = " + s5.v + ";\n"
                 + "meio: \n" + cond + " = " + s2.v + " > " + s7.v + ";\n"
-                + "if( " + cond + ") goto fim;\n"
+                + "if( " + cond + " ) goto fim;\n"
                 + s9.c + s2.v + " = " + s2.v + " + 1;\n"
                 + "goto meio;\n"
                 + "fim: \n";
@@ -307,33 +299,12 @@ Atributos gera_codigo_operacao(Atributos param1, Atributos opr, Atributos param2
     Atributos gerado;
 
     gerado.v = geraTemp();
-    gerado.c = param1.c + param2.c + 
-                "  " + gerado.v + " = " + param1.v + opr.v + param2.v + ";\n";
-
-    return gerado;
-}
-
-Atributos gera_codigo_comparacao(Atributos param1, Atributos opr, Atributos param2){
-    Atributos gerado;
-
-    gerado.v = geraTemp();
-    gerado.c = param1.c + opr.v + param2.c + ";\n";
-
-    return gerado;
-}
-
-
-Atributos gera_codigo_negacao(Atributos opr, Atributos param){
-    Atributos gerado;
-
-    gerado.v = param.v;
-    gerado.c = opr.v + param.v + ";\n";
+    gerado.c = param1.c + param2.c + "  " + gerado.v + " = " + param1.v + opr.v + param2.v + ";\n";
 
     return gerado;
 }
 
 int main(int argc, char* st[]){ 
     yyparse();
-
     return 0;
 }
