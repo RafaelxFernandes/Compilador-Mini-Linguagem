@@ -124,6 +124,7 @@ FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO ';' { geraFor($2, $5, 
             ;
             
 IF          : TK_IF R TK_THEN BLOCO TK_ELSE BLOCO ';'
+            | TK_IF R TK_THEN BLOCO TK_ELSE CMD 
             | TK_IF R TK_THEN BLOCO ';'
             | TK_IF R TK_THEN CMD
             ;
