@@ -107,8 +107,7 @@ ENTRADAS    : TK_SHIFTR TK_ID ';'                   { geraEntrada($2); }
             | TK_SHIFTR TK_ID '[' E ']' ENTRADAS    { geraEntradaComArray($2, $4); }
             ;
   
-SAIDA       : TK_CONSOLE SAIDAS TK_ENDL
-            | TK_CONSOLE SAIDAS
+SAIDA       : TK_CONSOLE SAIDAS 
             ;
 
 SAIDAS      : TK_SHIFTL E ';'                   { geraSaida($2); }
@@ -117,6 +116,7 @@ SAIDAS      : TK_SHIFTL E ';'                   { geraSaida($2); }
             | TK_SHIFTL TK_STRING ';'           { geraSaida($2); }
             | TK_SHIFTL TK_STRING TK_ENDL ';'   { geraSaida($2); }
             | TK_SHIFTL TK_STRING SAIDAS        { geraSaida($2); }
+            | TK_SHIFTL TK_ENDL ';'
             ;
         
 FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO  { geraFor($2, $5, $7, $9); }

@@ -37,7 +37,7 @@ STRING  \"(\"\"|\\\"|[^\n\"])*\"
 
 {ID}       { return token( TK_ID ); }
 
-.    { return token( *yytext ); }
+.          { return token( *yytext ); }
 
 %%
 int token( int tk ) {

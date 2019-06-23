@@ -1,4 +1,10 @@
-var a, b;
-console >> a >> b;
-if a > b then begin console << "a é maior: " << a << endl; end
-else begin console << "b é maior: " << b << endl; end;
+var a, b, i, j;
+console >> a;
+console >> b;
+for i in [3..a] begin
+  for j in [i2..bb] begin
+    if (ii + 1) % jj == 0 then
+      console << "[" << i << "," << j << "] ";
+  end;
+  console << "(" << ii << ")" << endl;
+end;
