@@ -1,8 +1,10 @@
-var a, tab[9], i, total;
+var a, b, i, j;
 console >> a;
-for i in [0..8]
-  tab[i] = a + i;
-total=0;
-for i in [10..18]
-  total = total + tab[i-10];
-console << total / 9 << endl;
+console >> b;
+for i in [3..a] begin
+  for j in [i*2..b*b] begin
+    if (i*i + 1) % j*j == 0 then
+      console << "[" << i << "," << j << "] ";
+  end;
+  console << "(" << i*i << ")" << endl;
+end;
