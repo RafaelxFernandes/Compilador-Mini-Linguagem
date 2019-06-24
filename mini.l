@@ -47,6 +47,7 @@ STRING  \"(\"\"|\\\"|[^\n\"])*\"
 .          { return token( *yytext ); }
 
 %%
+
 int token( int tk ) {
     yylval.v = yytext;
     coluna += strlen(yytext);

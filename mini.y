@@ -4,28 +4,29 @@
     #include <stdlib.h>
     #include <iostream>
     #include <map>
-
+    
     using namespace std;
-
+    
     extern "C" int yylex();
-
+    
     #define YYSTYPE Atributos
-
+    
     int linha = 1;
     int coluna = 1;
-
+    
     struct Atributos {
         string v;
         string c;
         int linha;
     };
-
+    
     int yylex();
     int yyparse();
+    
     void yyerror(const char *);
-
+    
     void geraPrograma(Atributos s1);
-
+    
     string declaraInt(Atributos s2);
     string concatenaVars(Atributos s1, Atributos s3);
     string geraVarComArray(Atributos s1, Atributos s3);
@@ -58,8 +59,7 @@
 %nonassoc "&&" "||"
 %nonassoc '<' '>' "<=" "=>"  "==" "!="
 %left '+' '-'
-%left '%'
-%left '*' '/'
+%left '*' '/' '%'
 
 %%
 
@@ -117,7 +117,7 @@ SAIDAS      : TK_SHIFTL E ';'                                   { $$.c = geraSai
             | TK_SHIFTL TK_STRING ';'                           { $$.c = geraSaida($2); }
             | TK_SHIFTL TK_STRING TK_ENDL ';'                   { $$.c = geraSaida($2); }
             | TK_SHIFTL TK_STRING SAIDAS                        { $$.c = geraSaida($2) + $3.c; }
-            | TK_SHIFTL TK_ENDL ';'
+            | TK_SHIFTL TK_ENDL ';'                             { $$.c = "cout << endl;\n "; }
             ;
 
 FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO ';'   { $$.c = geraFor($2, $5, $7, $9); }
@@ -190,10 +190,7 @@ void geraPrograma(Atributos s1){
   cout << cabecalho
        << declaraVar()
        << s1.c 
-    //    << "  cout << " << s1.v << ";\n"
-       << "  cout << endl;\n"
-       << fim_programa
-       << endl;
+       << fim_programa;
 }
 
 string declaraInt(Atributos s2){
@@ -300,11 +297,9 @@ string geraFor(Atributos s2, Atributos s5, Atributos s7, Atributos s9){
 Atributos geraAtribuicao(Atributos s1, Atributos s3){
     Atributos gerado;
     
-    ts[s1.v] = " int " + s1.v + ";\n";
-    
     gerado.v = s1.v;
     
-    gerado.c = s1.c + s3.c + " " + gerado.v + " = " + s3.v + ";\n";
+    gerado.c = s1.c + s3.c + " " + gerado.v + " = " + s3.v + ";";
     
     return gerado;
 }
@@ -312,7 +307,7 @@ Atributos geraAtribuicao(Atributos s1, Atributos s3){
 Atributos geraAtribuicaoComArray(Atributos s1, Atributos s3, Atributos s6){
     Atributos gerado;
     
-    gerado.c = s3.c + s6.c + s1.v + "[" + s3.v + "] = " + s6.v  + ";\n";
+    gerado.c = s3.c + s6.c + s1.v + "[" + s3.v + "] = " + s6.v  + ";";
     
     gerado.v = s6.v;
     
@@ -332,9 +327,9 @@ Atributos geraEntradaComArray(Atributos s2, Atributos s4){
 Atributos geraValorComArray(Atributos s1, Atributos s3){
     Atributos gerado;
     
-    gerado.c = geraTemp();
+    gerado.v = geraTemp();
     
-    gerado.v = s3.c + gerado.v + " = " + s1.v + "[" + s3.v + "];\n";
+    gerado.c = s3.c + gerado.v + " = " + s1.v + "[" + s3.v + "];\n";
     
     return gerado;
 }

@@ -1910,6 +1910,7 @@ void yyfree (void * ptr )
 
 #line 49 "mini.l"
 
+
 int token( int tk ) {
     yylval.v = yytext;
     coluna += strlen(yytext);
