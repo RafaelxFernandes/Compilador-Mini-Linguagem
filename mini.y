@@ -33,6 +33,8 @@
     string declaraVar();
     string geraEntrada(Atributos s2);
     string geraSaida(Atributos s2);
+    string geraIf(Atributos s2, Atributos s4, Atributos s6);
+    string geraIfSemElse(Atributos s2, Atributos s4);
     string geraFor(Atributos s2, Atributos s5, Atributos s7, Atributos s9);
 
     Atributos geraAtribuicao(Atributos s1, Atributos s3);
@@ -40,7 +42,7 @@
     Atributos geraEntradaComArray(Atributos s2, Atributos s4);
     Atributos geraValorComArray(Atributos s1, Atributos s3); 
     Atributos gera_codigo_operacao(Atributos s1, Atributos s2, Atributos s3);
-    Atributos gera_codigo_comparacao(Atributos s1, Atributos s2, Atributos s3);
+    Atributos gera_codigo_comparacao(Atributos s1, string s2, Atributos s3);
     Atributos gera_codigo_negacao(Atributos s1, Atributos s2);
 
     map<string,string> ts;
@@ -62,11 +64,11 @@
 S           : CMDS      { geraPrograma($1); }
             ;  
 
-CMDS        : CMDS CMD  { $$.c = $1.c + $2.c; }
+CMDS        : CMDS CMD  { $$.c = $1.c + $2.c; $$.v = $1.v; }
             | CMD       
             ;
     
-CMD         : DECLVAR ';'
+CMD         : DECLVAR ';' { $$.c = $1.c; $$.v = $1.v; }
             | ENTRADA
             | SAIDA
             | ATR
@@ -81,7 +83,7 @@ CMDX        : ENTRADA
             | IF
             ;
 
-BLOCO       : TK_BEGIN CMDS TK_END
+BLOCO       : TK_BEGIN CMDS TK_END { $$.c = $2.c; $$.v = $2.v; }
             ;
     
 DECLVAR     : TK_VAR VARS   { $$.c = declaraInt($2); }
@@ -95,24 +97,24 @@ VAR         : TK_ID '[' CINT ']'    { $$.c = geraVarComArray($1, $3); }
             | TK_ID                 { $$.c = $1.v; }
             ;
         
-ENTRADA     : TK_CONSOLE ENTRADAS          
+ENTRADA     : TK_CONSOLE ENTRADAS       { $$.c = $2.c; }    
             ;
 
 ENTRADAS    : TK_SHIFTR TK_ID ';'                   { $$.c = geraEntrada($2); }
-            | TK_SHIFTR TK_ID ENTRADAS              { $$.c = geraEntrada($2); } 
+            | TK_SHIFTR TK_ID ENTRADAS              { $$.c = geraEntrada($2) + $3.c; } 
             | TK_SHIFTR TK_ID '[' E ']' ';'         { $$ = geraEntradaComArray($2, $4); } 
-            | TK_SHIFTR TK_ID '[' E ']' ENTRADAS    { $$ = geraEntradaComArray($2, $4); }
+            | TK_SHIFTR TK_ID '[' E ']' ENTRADAS    { $$ = geraEntradaComArray($2, $4); $$.c += $5.c; }
             ;
   
-SAIDA       : TK_CONSOLE SAIDAS 
+SAIDA       : TK_CONSOLE SAIDAS         { $$.c = $1.c + $2.c; }
             ;
 
 SAIDAS      : TK_SHIFTL E ';'                   { $$.c = geraSaida($2); }
             | TK_SHIFTL E TK_ENDL ';'           { $$.c = geraSaida($2); }
-            | TK_SHIFTL E SAIDAS                { $$.c = geraSaida($2); }
+            | TK_SHIFTL E SAIDAS                { $$.c = geraSaida($2) + $3.c; }
             | TK_SHIFTL TK_STRING ';'           { $$.c = geraSaida($2); }
             | TK_SHIFTL TK_STRING TK_ENDL ';'   { $$.c = geraSaida($2); }
-            | TK_SHIFTL TK_STRING SAIDAS        { $$.c = geraSaida($2); }
+            | TK_SHIFTL TK_STRING SAIDAS        { $$.c = geraSaida($2) + $3.c; }
             | TK_SHIFTL TK_ENDL ';'
             ;
         
@@ -120,10 +122,10 @@ FOR         : TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' BLOCO ';' { $$.c = geraFor($
             | TK_FOR TK_ID TK_IN '[' E TK_2PT E ']' CMDX      { $$.c = geraFor($2, $5, $7, $9); }   
             ;
             
-IF          : TK_IF R TK_THEN BLOCO TK_ELSE BLOCO ';'
-            | TK_IF R TK_THEN BLOCO TK_ELSE CMD 
-            | TK_IF R TK_THEN BLOCO ';'
-            | TK_IF R TK_THEN CMD
+IF          : TK_IF R TK_THEN BLOCO TK_ELSE BLOCO ';'   { $$.c = geraIf($2, $4, $6); }
+            | TK_IF R TK_THEN BLOCO TK_ELSE CMD         { $$.c = geraIf($2, $4, $6); }
+            | TK_IF R TK_THEN BLOCO ';'                 { $$.c = geraIfSemElse($2, $4); }
+            | TK_IF R TK_THEN CMD                       { $$.c = geraIfSemElse($2, $4); }
             ;
   
 ATR         : TK_ID '=' E ';'           { $$ = geraAtribuicao($1, $3) ; }
@@ -145,10 +147,10 @@ R           : E
 
 C           : E '<' E           { $$ = gera_codigo_operacao($1, $2, $3); }
             | E '>' E           { $$ = gera_codigo_operacao($1, $2, $3); }
-            | E TK_MAIG E       { $$ = gera_codigo_operacao($1, $2, $3); }
-            | E TK_MEIG E       { $$ = gera_codigo_operacao($1, $2, $3); }
-            | E TK_IG E         { $$ = gera_codigo_operacao($1, $2, $3); }
-            | E TK_DIF E        { $$ = gera_codigo_operacao($1, $2, $3); }
+            | E TK_MAIG E       { $$ = gera_codigo_comparacao($1, ">=", $3); }
+            | E TK_MEIG E       { $$ = gera_codigo_comparacao($1, "<=", $3); }
+            | E TK_IG E         { $$ = gera_codigo_comparacao($1, "==", $3); }
+            | E TK_DIF E        { $$ = gera_codigo_comparacao($1, "!=", $3); }
             ;
 
 L           : C TK_AND C        { $$ = gera_codigo_operacao($1, $2, $3); }
@@ -184,9 +186,10 @@ void geraPrograma(Atributos s1){
   cout << cabecalho
        << declaraVar()
        << s1.c 
-       << "  cout << " << s1.v << ";\n"
+    //    << "  cout << " << s1.v << ";\n"
        << "  cout << endl;\n"
-       << fim_programa;
+       << fim_programa
+       << endl;
 }
 
 string declaraInt(Atributos s2){
@@ -243,22 +246,46 @@ string geraEntrada(Atributos s2){
 string geraSaida(Atributos s2){
     Atributos gerado;
 
-    gerado.c = s2.c + "cout << " + s2.v + " << endl;\n";
+    gerado.c = s2.c + "cout << " + s2.v + ";\n";
 
+    return gerado.c;
+}
+
+string geraIf(Atributos s2, Atributos s4, Atributos s6){
+    Atributos gerado;
+
+    gerado.c = s2.c
+                + "if (" + s2.v + ") goto meio" +  +";\n"
+                + s6.c + "goto fim;\n"
+                + "meio:\n" + s4.c
+                + "fim:\n";
+
+    return gerado.c;
+}
+
+string geraIfSemElse(Atributos s2, Atributos s4){
+    Atributos gerado;
+
+    gerado.c = s2.c
+                + "if (" + s2.v + ") goto fim;\n"
+                + "fim:\n";
+    
     return gerado.c;
 }
 
 string geraFor(Atributos s2, Atributos s5, Atributos s7, Atributos s9){
     Atributos gerado;
 
+    static int nVarCont = 0;
+
     string cond = geraTemp();
 
     gerado.c = s5.c + s7.c + s2.v + " = " + s5.v + ";\n"
-                + "meio: \n" + cond + " = " + s2.v + " > " + s7.v + ";\n"
-                + "if( " + cond + " ) goto fim;\n"
+                + "meio" + to_string(nVarCont++) + ": \n" + cond + " = " + s2.v + " > " + s7.v + ";\n"
+                + "if( " + cond + " ) goto fim" + to_string(nVarCont) + ";\n"
                 + s9.c + s2.v + " = " + s2.v + " + 1;\n"
-                + "goto meio;\n"
-                + "fim: \n";
+                + "goto meio" + to_string(nVarCont) + ";\n"
+                + "fim" + to_string(nVarCont) + ": \n";
 
     return gerado.c;
 }
@@ -304,7 +331,16 @@ Atributos gera_codigo_operacao(Atributos param1, Atributos opr, Atributos param2
     Atributos gerado;
 
     gerado.v = geraTemp();
-    gerado.c = param1.c + param2.c + "  " + gerado.v + " = " + param1.v + opr.v + param2.v + ";\n";
+    gerado.c = param1.c + param2.c + "  " + gerado.v + " = " + param1.v + " " + opr.v + " " + param2.v + ";\n";
+
+    return gerado;
+}
+
+Atributos gera_codigo_comparacao(Atributos param1, string opr, Atributos param2){
+    Atributos gerado;
+
+    gerado.v = geraTemp();
+    gerado.c = param1.c + param2.c + "  " + gerado.v + " = " + param1.v + " " + opr + " " + param2.v + ";\n";
 
     return gerado;
 }
